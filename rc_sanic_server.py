@@ -14,19 +14,23 @@ async def index(request):
 
 @app.websocket('/feed')
 async def feed(request, ws):
+    distancey =0.0
+    distancex = 0.0
+    directionx=""
+    directiony=""
+    await ws.send("Connected")
     while True:
-        name = await ws.recv()
-        json_str = json.dumps(name)
-        json_obj = json.loads(name)
-        #print(str(json_obj["distance"]) + " "+ str(json_obj["direction"]))
-#        data = json_obj["direction"].split(":")
-#        if(len(data)>1):
-        distancey =0.0
-        distancex = 0.0
-        directionx=""
-        directiony=""
-    # try:
-        if True:
+        try:
+            name = await ws.recv()    
+
+        except:
+            await ws.send("Connection lost!")
+            print("Connection lost")
+            name = None
+        try:
+            json_str = json.dumps(name)
+            json_obj = json.loads(name)
+        #if True:
             joyid = int(json_obj["joyid"])
             directiony = json_obj["directiony"]
             directionx = json_obj["directionx"]
@@ -39,12 +43,13 @@ async def feed(request, ws):
             elif(joyid == 1 and directionx=="None"):
                 rc_servo.stop()
             else:
-                rc_servo.move(directionx, directiony, distancex, distancey)
-
-     #   except:
-      #      print("ERROR in data")
-      #      rc_servo.stop()
-      #      rc_servo.stopthrotle()        
+                s = rc_servo.move(directionx, directiony, distancex, distancey)
+            await ws.send(directiony + " and " + directionx)
+        except:
+            print("ERROR in data")
+            rc_servo.stop()
+            rc_servo.stopthrotle()        
+            await ws.send("Data error!")
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)
