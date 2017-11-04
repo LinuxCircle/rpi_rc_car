@@ -1,0 +1,78 @@
+import time
+ 
+import pigpio
+ 
+pi = pigpio.pi() # Connect to local Pi.
+#pi.stop()
+#pi.start()
+# set gpio modes
+ 
+pi.set_mode(14, pigpio.OUTPUT)
+pi.set_mode(15, pigpio.OUTPUT)
+
+ 
+ 
+# start 1500 us servo pulses on gpio4
+
+mid = 1450
+pi.set_servo_pulsewidth(15, mid)
+last = 1450
+def right(a): 
+ global last
+ pulse = int(mid - float(a) * 5)
+ print("SERVO right: " + str(pulse))	
+ pi.set_servo_pulsewidth(15, pulse)
+ last = pulse
+ #time.sleep(0.1)
+
+def left(a):
+ global last 
+ pulse = int(mid + float(a) * 5)	
+ print("SERVO left: " + str(pulse))
+ pi.set_servo_pulsewidth(15, pulse)
+ last = pulse
+ #time.sleep(0.1)
+
+def test():
+ pi.set_servo_pulsewidth(15, 1000)
+ time.sleep(1)
+ pi.set_servo_pulsewidth(15, 1800)
+ time.sleep(1)
+ pi.set_servo_pulsewidth(15, 1400)
+ time.sleep(1)
+ pi.set_servo_pulsewidth(15, 0)
+# start 75% dutycycle PWM on gpio17
+ 
+ pi.set_PWM_dutycycle(14, 192) # 192/255 = 75%
+ pi.stop()
+
+def testPWM():
+ pi.set_PWM_dutycyble(15, 255)
+ for x in range(255,0,1):
+   pi.set_PWM_dutycycle(15,x)
+   print(x)
+def stop():
+ global last
+ pulse= mid
+ print("SERVO stop: " + str(pulse))
+ if(last>mid):
+   for x in range(255,0,-10):
+    # pi.set_servo_pulsewidth(15, x)
+     pi.set_PWM_dutycycle(15,x)
+     print(x)
+     time.sleep(0.01)
+ elif(last<mid):
+   for x in range(last, mid+10, +10):
+     pi.set_servo_pulsewidth(15, x)
+     print(x)
+     time.sleep(0.01)
+# pi.set_servo_pulsewidth(15, mid)
+ last = mid
+# time.sleep(0.5)
+ pi.set_PWM_dutycycle(15, 0)
+ #pi.stop()
+
+if __name__ == '__main__':
+    testPWM()
+    stop()
+    pi.stop()

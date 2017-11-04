@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+    <title>Smart Joystick RC</title>
+    <!--// <link rel="stylesheet" href="/static/style.css"> //!-->
+    <script type="text/javascript" src="/static/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/socket.io.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=0.5">
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div id="left">
+          <div id="debug1">
+            <ul>
+              <li class="position">
+                position :
+                <ul>
+                  <li class="x">x : <span class='data'></span></li>
+                  <li class="y">y : <span class='data'></span></li>
+                </ul>
+              </li>
+              <li class="force">force : <span class='data'></span></li>
+              <li class="pressure">pressure : <span class='data'></span></li>
+              <li class="distance">distance : <span class='data'></span></li>
+              <li class="angle">
+                angle :
+                <ul>
+                  <li class="radian">radian : <span class='data'></span></li>
+                  <li class="degree">degree : <span class='data'></span></li>
+                </ul>
+              </li>
+              <li class="direction">
+                direction :
+                <ul>
+                  <li class="x">x : <span class='data'></span></li>
+                  <li class="y">y : <span class='data'></span></li>
+                  <li class="angle">angle : <span class='data'></span></li>
+                </ul>
+              </li>
+            </ul>
+            <div class="dump"></div>
+          </div>
+        </div>
+        <div id="right">
+                  <div id="status">
+        <br>Dir: <input id="direction1" type="text" class='data' value=""/>
+        <br>Status: <input id="status1" type="text" class='data' value=""/>
+        <br>Distance: <input id="distance1" type="text" class='data' value=""/>
+      </div>
+          <div id="debug2">
+            <ul>
+              <li class="position">
+                position :
+                <ul>
+                  <li class="x">x : <span class='data'></span></li>
+                  <li class="y">y : <span class='data'></span></li>
+                </ul>
+              </li>
+              <li class="force">force : <span class='data'></span></li>
+              <li class="pressure">pressure : <span class='data'></span></li>
+              <li class="distance">distance : <span class='data'></span></li>
+              <li class="angle">
+                angle :
+                <ul>
+                  <li class="radian">radian : <span class='data'></span></li>
+                  <li class="degree">degree : <span class='data'></span></li>
+                </ul>
+              </li>
+              <li class="direction">
+                direction :
+                <ul>
+                  <li class="x">x : <span class='data'></span></li>
+                  <li class="y">y : <span class='data'></span></li>
+                  <li class="angle">angle : <span class='data'></span></li>
+                </ul>
+              </li>
+            </ul>
+            <div class="dump"></div>
+          </div>  
+        </div>
+        <script src="/static/nipplejs.js" charset="utf-8"></script>
+        <script>
+          $(document).ready(function() {
+
+        var joystickL = nipplejs.create({
+            zone: document.getElementById('left'),
+            mode: 'static',
+            position: { left: '20%', top: '50%' },
+            color: 'green',
+            size: 200
+        });
+
+        var joystickR = nipplejs.create({
+            zone: document.getElementById('right'),
+            mode: 'static',
+            position: { left: '80%', top: '50%' },
+            color: 'red',
+            size: 200
+        });
+
+        var s = function(sel) {
+          return document.querySelector(sel);
+        };
+        var sId = function(sel) {
+          return document.getElementById(sel);
+        };
+        var removeClass = function(el, clss) {
+          el.className = el.className.replace(new RegExp('\\b' + clss + ' ?\\b', 'g'), '');
+        }
+        var joysticks = {
+          dynamic: {
+            zone: s('.zone.dynamic'),
+            color: 'blue',
+            multitouch: true
+          },
+          semi: {
+            zone: s('.zone.semi'),
+            mode: 'semi',
+            catchDistance: 150,
+            color: 'white'
+          },
+          static: {
+            zone: s('.zone.static'),
+            mode: 'static',
+            position: {
+              left: '50%',
+              top: '50%'
+            },
+            color: 'red'
+          }
+        };
+        var joystick;
+
+        // Get debug elements and map them
+
+
+
+        function breakupdata(elDebug){
+          var els = {
+            position: {
+              x: elDebug.querySelector('.position .x .data'),
+              y: elDebug.querySelector('.position .y .data')
+            },
+            force: elDebug.querySelector('.force .data'),
+            pressure: elDebug.querySelector('.pressure .data'),
+            distance: elDebug.querySelector('.distance .data'),
+            angle: {
+              radian: elDebug.querySelector('.angle .radian .data'),
+              degree: elDebug.querySelector('.angle .degree .data')
+            },
+            direction: {
+              x: elDebug.querySelector('.direction .x .data'),
+              y: elDebug.querySelector('.direction .y .data'),
+              angle: elDebug.querySelector('.direction .angle .data')
+            }
+          };
+          return els;
+        }
+
+        function bindNipple(j) {
+
+          j.on('start end', function(evt, data) {
+            dump(evt.type , j.id);
+
+            debug(data);
+            //socket.emit('my_event', {dir: $("#direction"+j.id).val(), dis: $("#distance"+j.id).val(), sta: $("#status"+j.id).val()});
+          }).on('move', function(evt, data) {
+            debug(data);
+            $("#distance"+j.id).val(data.distance);
+            socket.emit('my_event', {dir: $("#direction"+j.id).val(), dis: $("#distance"+j.id).val(), sta: $("#status"+j.id).val()});
+            //console.log(data.distance);
+          }).on('dir:up plain:up dir:left plain:left dir:down ' +
+                'plain:down dir:right plain:right',
+                function(evt, data) {
+            dump(evt.type, j.id);
+            $("#direction"+j.id).val(data.direction.x);
+            //console.log(data.direction.x);
+            socket.emit('my_event', {dir: $("#direction"+j.id).val(), dis: $("#distance"+j.id).val(), sta: $("#status"+j.id).val()});
+          }
+               ).on('pressure', function(evt, data) {
+            debug({
+              pressure: data
+            });
+          });
+
+
+        }
+        bindNipple(joystickL);
+        bindNipple(joystickR);
+
+
+        // Print data into elements
+        function debug(obj) {
+          
+          function parseObj(sub, el) {
+            for (var i in sub) {
+              if (typeof sub[i] === 'object' && el) {
+                parseObj(sub[i], el[i]);
+              } else if (el && el[i]) {
+                el[i].innerHTML = sub[i];
+                //alert(sub[i])
+              }
+            }
+          }
+          setTimeout(function() {
+            parseObj(obj, els);
+
+            
+          }, 0);
+        }
+
+        var nbEvents = 0;
+
+        // Dump data
+        function dump(evt,joystick) {
+          elDebug = sId('debug' + (joystick + 1));
+          elDump = elDebug.querySelector('.dump');
+          //console.log(elDump);
+          els = breakupdata(elDebug);
+          setTimeout(function() {
+            if (elDump.children.length > 4) {
+              elDump.removeChild(elDump.firstChild);
+            }
+            var newEvent = document.createElement('div');
+            newEvent.innerHTML = '#' + nbEvents + ' : <span class="data">' +
+              evt + '</span>';
+            elDump.appendChild(newEvent);
+            nbEvents += 1;
+            
+            $("#status"+joystick).val(evt);
+            if(evt=="end"){
+                $("#distance"+joystick).val(0);
+              $("#direction"+joystick).val("None");
+            }
+            console.log("DUMP " + evt);
+            socket.emit('my_event', {dir: $("#direction"+joystick).val(), dis: $("#distance"+joystick).val(), sta: evt});
+            
+          }, 0);
+        }
+
+
+// Use a "/test" namespace.
+            // An application can open a connection on multiple namespaces, and
+            // Socket.IO will multiplex all those connections on a single
+            // physical channel. If you don't care about multiple channels, you
+            // can set the namespace to an empty string.
+            namespace = '/test';
+            // Connect to the Socket.IO server.
+            // The connection URL has the following format:
+            //     http[s]://<domain>:<port>[/<namespace>]
+            var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            socket.on('connect', function() {
+                socket.emit('my_event', {data: 'I\'m connected!'});
+            });
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            // to the client. The data is then displayed in the "Received"
+            // section of the page.
+            socket.on('my_response', function(msg) {
+                $('#log').html('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            });
+            
+            // Interval function that tests message latency by sending a "ping"
+            // message. The server then responds with a "pong" message and the
+            // round trip time is measured.
+            var ping_pong_times = [];
+            var start_time;
+            window.setInterval(function() {
+                start_time = (new Date).getTime();
+                socket.emit('my_ping');
+            }, 1000);
+            // Handler for the "pong" message. When the pong is received, the
+            // time from the ping is stored, and the average of the last 30
+            // samples is average and displayed.
+            socket.on('my_pong', function() {
+                var latency = (new Date).getTime() - start_time;
+                ping_pong_times.push(latency);
+                ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
+                var sum = 0;
+                for (var i = 0; i < ping_pong_times.length; i++)
+                    sum += ping_pong_times[i];
+                $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+            });
+
+        });
+        </script>
+<p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
+    </body>
+</html>
