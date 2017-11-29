@@ -10,66 +10,38 @@ html, body {
             margin: 0;
         }
 
-.buttons{
-    height:70px;
-    width: 70px;
-    z-index: 2;
-}
 
-#middle
+
+#panel
 {
     position: relative;
-    height: 95%;
-    width: 50%;
-
+    clear:both;
+ //   height: 10%;
     background-color: white;
-    margin-left:25%;   
-    float: left;
+    padding: 10px;
+    margin-left:45%;   
 }
 
-#panel{
-    position: relative;
-    padding:5px;
-    margin:5px;
-    //height:10%;
-//    clear:both;
-}
-
-#motionjpeg{
-  position: fixed;
-  width: inherit;
-}
 
 #control{
-    height:99%;
+    height:90%;
    }
 
         #left {
-float: right;
             position: absolute;
             left: 0;
-            height: 99%;
-            width: 25%;
+            height: 85%;
+            width: 50%;
             background: rgba(200, 255, 0, 0.2);
         }
 
         #right {
-            float: right;
-            position: absolute;;
+            position: absolute;
             right: 0;
-            height: 99%;
-            width: 25%;
+            height: 85%;
+            width: 50%;
             background: rgba(0, 0, 255, 0.2);
         }
-#debug1, #debug2{
-    z-index:-1;
-    position:absolute;
-    //background:red;
-    //margin-right:300;
-    //padding-right:533;
-    //right:0;
-    padding:10px;
-}
 /*
 h1 {  
     color: navajowhite;

@@ -10,14 +10,13 @@
         <link rel="stylesheet" href="./static/style.css">
     </head>
     <body>
+        <div id="control">
         <div id="left">
-                   <div id="status">
-        <br>Dir X: <input id="directionx0" type="text" class='data' value="None"/>
+           <div id="debug1">
+                    <input id="directionx0" type="hidden" class='data' value="None"/>
         <br>Dir Y: <input id="directiony0" type="text" class='data' value="None"/>
-        <br>Status: <input id="status0" type="text" class='data' value="0"/>
+        <input id="status0" type="hidden" class='data' value="0"/>
         <br>Distance: <input id="distance0" type="text" class='data' value="0"/>
-      </div>
-          <div id="debug1">
             <ul>
               <li class="position">
                 position :
@@ -48,15 +47,25 @@
             <div class="dump"></div>
           </div>
         </div>
-        <div id="right">
-                  <div id="status">
-        <br>Dir X: <input id="directionx1" type="text" class='data' value="None"/>
-        <br>Dir Y: <input id="directiony1" type="text" class='data' value="None"/>
-        <br>Status: <input id="status1" type="text" class='data' value="0"/>
-        <br>Distance: <input id="distance1" type="text" class='data' value="0"/>
+         <div id="middle">
+        <div id="panel">
+<!--// <img id="motionjpeg" src="http://192.168.200.1:8080?action=stream" />//!-->
+		<input type="button" class="buttons" id="snap" value ="snap">
+        <span id="feedback"></span>
+        <input type="button" class="buttons" id="less" value="<<">  
+        <input type="button" class="buttons" id="default" value ="==">
+        <input type="button" class="buttons" id="more" value =">>">
+        </div>
+  <img id="motionjpeg" src="http://192.168.200.1:8080?action=stream" />
       </div>
-          <div id="debug2">
-            <ul>
+
+        <div id="right">
+           <div id="debug2">
+        <br>Dir X: <input id="directionx1" type="text" class='data' value="None"/>
+        <input id="directiony1" type="hidden" class='data' value="None"/>
+        <input id="status1" type="hidden" class='data' value="0"/>
+        <br>Distance: <input id="distance1" type="text" class='data' value="0"/>
+                     <ul>
               <li class="position">
                 position :
                 <ul>
@@ -89,11 +98,31 @@
         <script src="/static/nipplejs.js" charset="utf-8"></script>
         <script>
           $(document).ready(function() {
-		var ws = new WebSocket("ws://" + document.domain + ":" + location.port + "/feed");
+    		var ws = new WebSocket("ws://" + document.domain + ":" + location.port + "/feed");
+            ws.onmessage = function (event) {
+                $("#feedback").html(event.data);
+            };
+
+$( "#less" ).click(function() {
+    ws.send("less");
+});
+
+$( "#default" ).click(function() {
+    ws.send("default");
+});
+
+$( "#more" ).click(function() {
+    ws.send("more");
+});
+
+$( "#snap" ).click(function() {
+    ws.send("snap");
+});
+
         var joystickL = nipplejs.create({
             zone: document.getElementById('left'),
             mode: 'static',
-            position: { left: '20%', top: '50%' },
+            position: { left: '40%', top: '50%' },
             color: 'green',
             size: 200
         });
@@ -101,7 +130,7 @@
         var joystickR = nipplejs.create({
             zone: document.getElementById('right'),
             mode: 'static',
-            position: { left: '80%', top: '50%' },
+            position: { left: '60%', top: '50%' },
             color: 'red',
             size: 200
         });
@@ -141,7 +170,9 @@
 
         // Get debug elements and map them
 
-
+function round(value, decimals) {
+  return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
 
         function breakupdata(elDebug){
           var els = {
@@ -195,6 +226,7 @@
                 debug({
                     pressure: data
                 });
+                console.log(data);
           });
 
 
@@ -264,5 +296,6 @@
 
         });
         </script>
+        </div>
     </body>
 </html>
